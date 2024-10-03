@@ -290,7 +290,7 @@ public class CalculaNomina {
 					fcs.write(text);
 					fcs.close();
 
-					System.out.println("\nBackup completado");
+					System.out.println("\nCopia de seguridad completada con exito");
 				}catch(SQLException e) {
 					
 				}catch (IOException e1) {
