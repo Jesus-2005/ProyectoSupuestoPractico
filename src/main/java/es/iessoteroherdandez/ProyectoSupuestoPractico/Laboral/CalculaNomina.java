@@ -22,7 +22,7 @@ public class CalculaNomina {
 		String txtEmpleados = "../ProyectoSupuestoPractico_parte2/empledos.txt";
 		String datSalarios = "../ProyectoSupuestoPractico_parte2/salarios.dat";
 		final String SQL = "SELECT Nombre,Dni,Sexo,Categoria,Anyos FROM empleado";
-
+//para realizar lo siguiente debera realizar lo comentado en el medio del punto 2 para que se creen los sueldos
 		Scanner scanner = new Scanner(System.in);
 		int opcion;
 
@@ -31,6 +31,9 @@ public class CalculaNomina {
 			System.out.println("1. Informacion empleados");
 			System.out.println("2. Informacion salario");
 			System.out.println("3. Modificacion de datos");
+			System.out.println("4. Actualizacion del sueldo de un empleado");
+			System.out.println("5. Actualizacion del sueldo de todos los empleados");
+			System.out.println("6. Hacer una copia de seguridad de la base datos");
 			System.out.println("0. Salir");
 			System.out.print("Selecciona una opción: ");
 			opcion = scanner.nextInt();
@@ -215,6 +218,85 @@ public class CalculaNomina {
 					}
 					System.out.println();
 				} while (opcion != 0);
+				break;
+			case 4:
+				System.out.println("Introduce el dni del empleado:");
+				dniScanner = scanner.nextLine();
+				try(Connection conn = DBUtils.getConnection();
+						Statement st = conn.createStatement();
+						ResultSet rs = st.executeQuery(SQL);){
+					while (rs.next()) {
+						Integer sueldo = n.sueldo(new Empleado(rs.getString("nombre"),
+								rs.getString("dni"), rs.getString("sexo").charAt(0),
+								rs.getInt("categoria"), rs.getInt("anyos")));
+
+						
+						st.executeUpdate(
+								"UPDATE nomina SET sueldo = " + sueldo + " WHERE dni = '" + dniScanner + "'");
+					}
+					
+				}catch(SQLException e) {
+					
+				} catch (DatosNoCorrectosException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				System.out.println("Sueldo actualizado con exito");
+				break;
+			case 5:
+				try(Connection conn = DBUtils.getConnection();
+						Statement st = conn.createStatement();
+						ResultSet rs = st.executeQuery(SQL);){
+					while (rs.next()) {
+						Integer sueldo = n.sueldo(new Empleado(rs.getString("nombre"),
+								rs.getString("dni"), rs.getString("sexo").charAt(0),
+								rs.getInt("categoria"), rs.getInt("anyos")));
+
+						
+						st.executeUpdate(
+								"UPDATE nomina SET sueldo = " + sueldo + " WHERE dni = '" + rs.getString("dni") + "'");
+					}
+					
+				}catch(SQLException e) {
+					
+				} catch (DatosNoCorrectosException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				System.out.println("Sueldos actualizados con exito");
+				
+				break;
+			case 6:
+				try(Connection conn = DBUtils.getConnection();
+						Statement st = conn.createStatement();
+						ResultSet rs = st.executeQuery(SQL);
+						 ){
+					FileWriter fcs = new FileWriter("copiaSeguridad.txt");
+					String text = "EMPLEADOS:\n---------------";
+					while (rs.next()) {
+						text += "\n" + rs.getString("nombre") + ", "
+								+ rs.getString("dni") + ", "
+								+ rs.getString("sexo").charAt(0) + ", "
+								+ rs.getInt("categoria") + ", "
+								+ rs.getInt("anyos") + "\n";
+					}
+
+					text += "\nNOMINAS:\n---------------";
+					ResultSet nominas = st.executeQuery("SELECT dni, sueldo FROM nomina");
+					while (nominas.next()) {
+						text += "\n" + nominas.getString("dni") + ", " + nominas.getInt("sueldo") + "\n";
+					}
+
+					fcs.write(text);
+					fcs.close();
+
+					System.out.println("\nBackup completado");
+				}catch(SQLException e) {
+					
+				}catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 				break;
 			case 0:
 				System.out.println("Saliendo...");
